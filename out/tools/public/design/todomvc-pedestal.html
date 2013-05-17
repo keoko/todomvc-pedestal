@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+    <title>todomvc-pedestal</title>
+    
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+        <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+        <![endif]-->
+
+    <!-- Le styles -->
+    <link type="image/x-icon" rel="shortcut icon" href="/favicon.ico" />
+    <link rel="stylesheet" href="/stylesheets/bootstrap.css" />
+    <link rel="stylesheet" href="/stylesheets/pedestal.css" />
+    <link rel="stylesheet" href="/todomvc-pedestal.css" />
+    
+    <!-- Add xpath support to IE. Domina needs this -->
+    <!--[if IE]>
+        <script type="text/javascript" src="js/xpath.js"></script>
+        <![endif]-->
+
+  </head>
+
+  <body>
+
+    <div class="container">
+
+      <div id="content">
+
+    <!--
+        In the markup below, a template named "hello" is
+        defined. This template has two fields: id and message.
+
+        In the file
+
+        app/src/todomvc_pedestal/html_templates.clj
+
+        this template can be extracted by calling
+
+        (def template-fn (tfn (tnodes "todomvc-pedestal.html" "hello")))
+
+        template-fn is a function which, when called with a map of
+        values, will return a string of HTML with filled-in values.
+
+        (template-fn {:id 42 :message "Hello"})
+
+        The field attribute takes a comma delimited list of
+
+        html-element-attribute-name:map-key
+
+        content is a special case which means that the content
+        (innerHTML) of the element will be set to this value.
+    -->
+    
+    <div field="id:id" template="hello">
+
+      <div class="message" field="content:message">A Message</div>
+
+    </div>
+
+  </div>
+
+      <div id="options"></div>
+
+      <footer></footer>
+
+    </div> <!-- /container -->
+
+    <!-- Add External JavaScript libraries -->
+    <script type="text/javascript" src="/javascripts/jquery-min.js"></script>
+    <script type="text/javascript" src="/javascripts/bootstrap.js"></script>
+    <script type="text/javascript" src="/javascripts/pedestal/js/api.js"></script>
+
+    <script id="script-driver"></script>
+
+  </body>
+
+</html>

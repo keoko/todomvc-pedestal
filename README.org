@@ -1,0 +1,27 @@
+* todomvc-pedestal
+
+Port of [[http://todomvc.com/vanilla-examples/vanillajs/][TodoMVC VanillaJS]]  to [[https://github.com/pedestal/pedestal][pedestal]].
+
+** Prerequisites
+
+You will need [[https://github.com/technomancy/leiningen][Leiningen]] 2.0 or above installed.
+
+
+** Running
+
+To start the application, run:
+
+    lein cljsbuild once
+    lein ring server
+
+After running these commands the application will be open in your default browser.
+
+** TODO
+- Everything
+
+  
+** License
+
+Copyright © 2013 Keoko
+
+Distributed under the Eclipse Public License, the same as Clojure.

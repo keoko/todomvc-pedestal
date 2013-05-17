@@ -1,0 +1,16 @@
+/target
+/lib
+/classes
+/checkouts
+pom.xml
+*.jar
+*.db
+*.class
+/.lein-*
+/.env
+/logs
+
+#emacs temporary files
+*~
+[#]*[#]
+.\#*
