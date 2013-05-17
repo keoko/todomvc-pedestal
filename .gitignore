@@ -9,6 +9,7 @@ pom.xml
 /.lein-*
 /.env
 /logs
+/out
 
 #emacs temporary files
 *~
