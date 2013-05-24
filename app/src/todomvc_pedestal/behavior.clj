@@ -10,13 +10,43 @@
 ;; app starts up. This message will include a :value key with the
 ;; value of the :init key from your dataflow.
 
-(defn example-transform [transform-state message]
+
+(defn todo-transform [state message]
+  (condp = (msg/type message)
+    msg/init (:value message)
+    (update-in state [:model-todos] conj (:value message))))
+
+(comment defn todo-transform [transform-state message]
   (condp = (msg/type message)
     msg/init (:value message)
     transform-state))
 
-(def example-app
-  {:transform {:example-transform {:init "Hello World!" :fn example-transform}}})
+
+(defn todo-deltas [new-value]
+  [[:value [:app :todos] (:model-todos new-value)]])
+
+(defn todo-emit
+  ([inputs] 
+     (.log js/console "todo-emit 1st")
+     initial-app-model)
+  ([inputs changed-inputs]
+     (.log js/console "todo-emit")
+     (reduce (fn [a input-name]
+               (let [new-value (:new (get inputs input-name))]
+                 (concat a (case input-name
+                            :todo (todo-deltas new-value)
+                            []))))
+            []
+            changed-inputs)))
+
+(def ^:private initial-app-model
+  [{:app
+    {:todos []}}])
+
+
+(def todo-app
+  {:transform {:todo {:init nil :fn todo-transform}}
+   :emit {:emit {:fn todo-emit :input #{:todo}}}   })
 
 
 ;; Once this behavior works, run the Data UI and record

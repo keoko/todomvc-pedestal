@@ -12,7 +12,7 @@
   (let [;; Build the application described in the map
         ;; 'behavior/example-app'. The application is a record which
         ;; implements the Receiver protocol.
-        app (app/build behavior/example-app)
+        app (app/build behavior/todo-app)
         ;; Create the render function that will be used by this
         ;; application. A renderer function takes two arguments: the
         ;; application model deltas and the input queue.
