@@ -11,27 +11,25 @@ You will need [[https://github.com/technomancy/leiningen][Leiningen]] 2.0 or abo
 
 To start the application, run:
 
-    lein cljsbuild once
-    lein ring server
+- lein cljsbuild once
+- lein ring server
 
 After running these commands the application will be open in your default browser.
 
-** TODO
-- call default keypress event if not enter key
-- destroy-children in dommy?
-- next steps
-- commit the changes to git
-- use the proper todo data model
+** TODOS
+*** must have
 - init todo list from localStorage
 - save to localStorage
-- delete todo
 - update todo
 - check/uncheck completed
 - clear completed
 - check all
 - stats
 
-  
+*** nice to have
+- call default keypress event if not enter key
+- destroy-children in dommy?
+
 ** License
 
 Copyright © 2013 Keoko

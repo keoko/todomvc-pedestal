@@ -5,7 +5,9 @@
             [io.pedestal.app-tools.build :as build]
             [io.pedestal.app-tools.compile.repl :as repl]
             [config :as config]
-            [clojure.java.io :as io]))
+            [clojure.java.io :as io]
+            [cljs.repl.browser]
+            [cemerick.piggieback]))
 
 (defonce ^:private app-development-server nil)
 (defonce ^:private watcher nil)
@@ -114,3 +116,12 @@
   (println "Type (watch aspect) to build a specific aspect when it changes")
   (println "Type (unwatch) to stop the current watcher")
   (println))
+
+
+
+(defn piggieback-repl
+  "Starts a ClojureScript REPL, but using piggieback."
+  []
+  (cemerick.piggieback/cljs-repl :repl-env 
+      (doto (cljs.repl.browser/repl-env :port 9000) cljs.repl/-setup) 
+          :eval cemerick.piggieback/cljs-eval))

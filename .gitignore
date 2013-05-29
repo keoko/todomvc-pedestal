@@ -6,8 +6,10 @@ pom.xml
 *.jar
 *.db
 *.class
+*.log
 /.lein-*
 /.env
+/.repl
 /logs
 /out
 

@@ -1,5 +1,6 @@
 (ns todomvc-pedestal.rendering
   (:require [domina :as dom]
+            [domina.css :as dom-css]
             [io.pedestal.app.render.push :as render]
             [io.pedestal.app.messages :as msg]
             [io.pedestal.app.render.events :as events]
@@ -130,7 +131,37 @@
                         (when (= enter-key-code (.-keyCode evt))
                           (.log js/console text e char)
                           (set! (.-value text-node) "")
-                          [{msg/topic :todo msg/type :add :value text}]))))))
+                          [{msg/topic :todo msg/type :add-todo :value text}]))))))
+
+
+(defn create-todo-node [r [_ path] input-queue]
+  (let [id (name (last path))
+        container (dom/by-id "todo-list")]
+    (.log js/console "create-todo-node" id)
+
+    (dommy/append! container  (node [:li {:id id} [:div.view {:data-todo-id 1}
+                                         [:input.toggle {:type "checkbox"}]
+                                         [:label {:id (str "lbl_" id)} "new-todo"]
+                                         [:button.destroy {:id (str "del_" id)}]
+                                         [:input.edit {:id (str "input_" id)}]]]))
+    (events/send-on :click
+                    (dom/by-id (str "del_" id))
+                    input-queue
+                    (fn [e]
+                      [{msg/topic :todo msg/type :del-todo :value id}]))))
+
+(defn update-todo [r [_ path o n] d]
+  (let [id (name (last path))]
+    (.log js/console "update-todo" id n(dom-css/sel (dom/by-id id) "label"))
+    (comment dom/set-text! (dom-css/sel (dom/by-id id) "label") (:title n))
+    (dom/set-text! (dom/by-id (str "lbl_" id)) (:title n))))
+
+
+(defn delete-todo-node [r [_ path o n] d]
+  (let [id (name (last path))]
+    (.log js/console "delete-todo" id)
+    (dom/destroy! (dom/by-id id))))
+
 
 (defn render-config []
   [;; All :node-create deltas for the node at
@@ -140,15 +171,17 @@
    ;; when we don't provide our own combines and emits. To name your
    ;; own nodes, create a custom combine or emit in the application's
    ;; behavior.
-   [:node-create  [:io.pedestal.app/view-todo-transform] render-page]
+   ;;[:node-create  [:io.pedestal.app/view-todo-transform] render-page]
    [:node-create  [:app :todos] render-page-todo]
    ;; All :node-destroy deltas for this path will be handled by the
    ;; library function `d/default-exit`.
-   [:node-destroy   [:io.pedestal.app/view-todo-transform] d/default-exit]
+   ;;[:node-destroy   [:io.pedestal.app/view-todo-transform] d/default-exit]
    ;; All :value deltas for this path will be handled by the
    ;; function `render-message`.
    [:value [:io.pedestal.app/view-todo-transform] render-message]
-   [:value [:app :todos] render-todos]])
+   [:node-create  [:app :todos :*] create-todo-node]
+   [:node-destroy  [:app :todos :*] delete-todo-node]
+   [:value [:app :todos :*] update-todo]])
 
 ;; In render-config, paths can use wildcard keywords :* and :**. :*
 ;; means exactly one segment with any value. :** means 0 or more
