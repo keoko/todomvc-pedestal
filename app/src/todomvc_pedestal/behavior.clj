@@ -4,14 +4,6 @@
               [io.pedestal.app.util.log :as log]
               [io.pedestal.app.messages :as msg]))
 
-;; While creating new behavior, write tests to confirm that it is
-;; correct. For examples of various kinds of tests, see
-;; test/todomvc_pedestal/test/behavior.clj.
-
-;; You'll always receive a message with the type msg/init when your
-;; app starts up. This message will include a :value key with the
-;; value of the :init key from your dataflow.
-
 (defn get-uuid
   "returns a type 4 random UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx.
    @code from http://catamorphic.wordpress.com/2012/03/02/generating-a-random-uuid-in-clojurescript/"
@@ -24,12 +16,12 @@
                        (take 3 (drop 15 r)) ["-"]
                        (take 12 (drop 18 r))))))
 
+
 (defn diff-by [f new old]
   (let [o (set (map f old))
         n (set (map f new))
         new-keys (set/difference n o)]
     (filter (comp new-keys f) new)))
-
 
 
 (defn test-state []
@@ -41,12 +33,9 @@
 (defn init-state []
   (let [state (.getItem js/localStorage local-storage-name)]
     (if (not state)
-      (do
-        {:todos []
-         :stats (compute-stats [])})
+      {:todos []}
       (let [todos (keywordize-keys (js->clj (.parse js/JSON state)))]
-        {:todos todos
-         :stats (compute-stats todos)}))))
+        {:todos todos}))))
 
 
 (defn todo-transform [state message]
@@ -62,12 +51,16 @@
                             :completed false}))
     :del-todo (do
                 (let [id (:value message)]
-                  (.log js/console "del-todo:" id)
-                  (update-in state [:todos] (fn [todos] (remove #(= id (:id  %)) todos)))))))
+                  (update-in state [:todos] (fn [todos] (remove #(= id (:id  %)) todos)))))
+    :upd-todo (do
+                (let [{:keys [id title completed]} message]
+                  (.log js/console "upd-todo:" id title completed)
+                  (update-in state [:todos] (fn [todos] (map #(if ( = id (:id %)) (assoc % :title title :completed completed) %) todos)))))))
 
 
 (defn new-deltas [value] 
-  (log/debug :in :new-deltas :new-value (pr-str value))
+  (comment log/debug :in :new-deltas :new-value (pr-str value))
+  (.log js/console "new-deltas")
   (vec (mapcat (fn [{:keys [id] :as todo}] 
                  (log/debug :in :inner-new-deltas :new-value id)
                  [[:node-create [:app :todos id] :map]
@@ -76,34 +69,56 @@
 
 
 (defn- delete-deltas [value]
-  (log/debug :in :delete-deltas :value value)
+  (comment log/debug :in :delete-deltas :value value)
   (vec (mapcat (fn [{:keys [id] :as todo}]
                  [[:node-destroy [:app :todos id]]])
                value)))
 
+(defn- update-deltas [value]
+  (comment log/debug :in :update-deltas :value value)
+  (vec (mapcat (fn [{:keys [id] :as todo}]
+                 [[:value [:app :todos id] todo]])
+               value)))
+
+
 (defn new-todos [state input-name old-input new-input]
   (let [old (:todos old-input)
         new (:todos new-input)]
-    (log/debug :new-todos true :diff (diff-by :id new old))
+    (.log js/console "new-todos"  (diff-by :id new old))
+    (comment log/debug :new-todos true :diff)
     (diff-by :id new old)))
 
 
 (defn deleted-todos [state input-name old-input new-input]
   (let [old (:todos old-input)
         new (:todos new-input)]
-    (log/debug :in :deleted-todos :diff (diff-by :id old new) (pr-str old) (pr-str new2))
+    (comment log/debug :in :deleted-todos :diff (diff-by :id old new) (pr-str old) (pr-str new2))
     (diff-by :id old new)))
 
+(defn updated-todos [state input-name old-input new-input]
+  (let [old (:todos old-input)
+        new (:todos new-input)]
+    (comment log/debug :in :updated-todos :diff (diff-by :id old new) (pr-str old) (pr-str new2))
+    (for [n new 
+          o old
+          :when (and (= (:id n) (:id o))
+                     (or (not= (:title n) (:title o))
+                         (not= (:completed n) (:completed o))))]
+      n)))
+
 (defn todo-emit
-  ([inputs] 
-     (.log js/console "todo-emit 1st")
-     initial-app-model)
+  ([inputs]
+     (let [changed-inputs (assoc-in inputs [:new-todos :old] [])]
+       (.log js/console "todo-emit-1" (pr-str changed-inputs))
+       (concat  (todo-emit inputs changed-inputs)
+                [[:node-create [:app] :map] [:node-create [:app :todos] :map]])))
   ([inputs changed-inputs]
-     (.log js/console "todo-emit")
+     (.log js/console "todo-emit" (pr-str changed-inputs))
      (reduce (fn 
                [a input-name]
                (let [new-value (:new (get inputs input-name))]
-                 (log/debug :in :reduce :input input-name :new-value new-value)
+                 (comment log/debug :in :reduce :input input-name :new-value new-value)
+                 (.log js/console "in reduce")
                  (concat a (case input-name
                             :new-todos (new-deltas new-value)
                             :deleted-todos (delete-deltas new-value)
@@ -118,7 +133,8 @@
 
 
 (def todo-app
-  {:transform {:todo {:init nil :fn todo-transform}}
+  {:transform {:todo {:init (test-state) :fn todo-transform}}
    :combine {:new-todos {:fn new-todos :input #{:todo}}
-             :deleted-todos {:fn deleted-todos :input #{:todo}}}
-   :emit {:emit {:fn todo-emit :input #{:new-todos :deleted-todos}}}})
+             :deleted-todos {:fn deleted-todos :input #{:todo}}
+             :updated-todos {:fn updated-todos :input #{:todo}}}
+   :emit {:emit {:fn todo-emit :input #{:new-todos :deleted-todos :updated-todos}}}})

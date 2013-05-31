@@ -1,6 +1,7 @@
 (ns todomvc-pedestal.rendering
   (:require [domina :as dom]
             [domina.css :as dom-css]
+            [domina.events :as dom-events]
             [io.pedestal.app.render.push :as render]
             [io.pedestal.app.messages :as msg]
             [io.pedestal.app.render.events :as events]
@@ -103,21 +104,11 @@
                                  [:button.destroy]
                                  [:input.edit {:id (str "input_" 1)}]]])))))
 
-(comment defn render-page-todo [r [_ _ old-value new-value] input-queue]
-  (let [form (dom/by-id "todo-form")
-        btn (dom/by-id "todo-add-button")]
-    (.focus (dom/by-id "todo-entry"))
-    (events/send-on :click
-                    btn
-                    input-queue
-                    (fn [e]
-                      (let [text-node (dom/by-id "todo-entry")
-                            text (.-value text-node)]
-                        [{msg/topic :todo msg/type :add :value text}])))))
 
 (defn render-page-todo [r [_ _ old-value new-value] input-queue]
   (let [btn (dom/by-id "new-todo")]
     (.focus (dom/by-id "new-todo"))
+    (.log js/console "render-page-todo")
     (events/send-on :keypress
                     btn
                     input-queue
@@ -139,22 +130,46 @@
         container (dom/by-id "todo-list")]
     (.log js/console "create-todo-node" id)
 
-    (dommy/append! container  (node [:li {:id id} [:div.view {:data-todo-id 1}
-                                         [:input.toggle {:type "checkbox"}]
-                                         [:label {:id (str "lbl_" id)} "new-todo"]
-                                         [:button.destroy {:id (str "del_" id)}]
-                                         [:input.edit {:id (str "input_" id)}]]]))
+    (dommy/append! container  (node [:li {:id id} [:div.view {:data-todo-id id}
+                                                   [:input.toggle {:type "checkbox"}]
+                                                   [:label {:id (str "lbl_" id)} "new-todo"]
+                                                   [:button.destroy {:id (str "del_" id)}]]
+                                     [:input.edit {:id (str "input_" id)}]]))
+    ;; delete-todo event
     (events/send-on :click
                     (dom/by-id (str "del_" id))
                     input-queue
                     (fn [e]
-                      [{msg/topic :todo msg/type :del-todo :value id}]))))
+                      [{msg/topic :todo msg/type :del-todo :value id}]))
+    
+    (dom-events/listen! (dom/by-id (str "lbl_" id))
+                   :click
+                   (fn [e] 
+                     (dom/add-class! (dom/by-id id) "editing")
+                     (.focus (dom/by-id (str "input_" id)))))
+
+    (events/send-on :keypress
+                    (dom/by-id (str "input_" id))
+                    input-queue
+                    (fn [e]
+                      (let [evt (.-evt e)
+                            node (.-target evt)
+                            text (.-value node)
+                            char (or (== (.-charCode evt) 0) 
+                                     (.fromCharCode js/String (.-charCode evt)))]
+                        (set! (.-value node) (str text char))
+                        (when (= enter-key-code (.-keyCode evt))
+                          (.log js/console text e char)
+                          (set! (.-value node) "")
+                          (dom/remove-class! (dom/by-id id) "editing")
+                          [{msg/topic :todo msg/type :upd-todo :id id :title text :completed false}]))))))
 
 (defn update-todo [r [_ path o n] d]
   (let [id (name (last path))]
     (.log js/console "update-todo" id n(dom-css/sel (dom/by-id id) "label"))
     (comment dom/set-text! (dom-css/sel (dom/by-id id) "label") (:title n))
-    (dom/set-text! (dom/by-id (str "lbl_" id)) (:title n))))
+    (dom/set-text! (dom/by-id (str "lbl_" id)) (:title n))
+    (dom/set-value! (dom/by-id (str "input_" id)) (:title n))))
 
 
 (defn delete-todo-node [r [_ path o n] d]

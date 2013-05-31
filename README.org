@@ -18,17 +18,15 @@ After running these commands the application will be open in your default browse
 
 ** TODOS
 *** must have
-- init todo list from localStorage
-- save to localStorage
-- update todo
+- init/save todo list from/to localStorage
 - check/uncheck completed
 - clear completed
 - check all
 - stats
 
 *** nice to have
-- call default keypress event if not enter key
-- destroy-children in dommy?
+- call default keypress event handler after handling the keypress event
+- issues in emit with log/debug
 
 ** License
 
