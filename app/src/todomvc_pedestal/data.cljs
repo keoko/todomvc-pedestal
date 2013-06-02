@@ -1,4 +1,7 @@
-(ns ^:shared todomvc-pedestal.data)
+(ns todomvc-pedestal.data
+  (:use [clojure.walk :only [keywordize-keys]]))
+
+(def local-storage-name "todo-list")
 
 (defn get-uuid
   "returns a type 4 random UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx.
@@ -25,6 +28,9 @@
       (let [todos (keywordize-keys (js->clj (.parse js/JSON state)))]
         {:todos todos}))))
 
+(defn save-todos [todos]
+  (let [todos (.stringify js/JSON (clj->js (get-in todos [:todos])))]
+    (.setItem js/localStorage local-storage-name todos)))
 
 (defn add-todo [state title]
   (update-in state [:todos] conj 

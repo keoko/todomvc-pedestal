@@ -26,6 +26,10 @@
     (data/update-stats new-state)))
 
 
+(defn save-todos [message old-model new-model]  
+  (data/save-todos new-model)
+  [{msg/topic :todos msg/type :change-todos :new-state new-model}])
+
 (defn new-deltas [value] 
   (vec (mapcat (fn [{:keys [id] :as todo}] 
                  [[:node-create [:app :todos id] :map]
@@ -130,7 +134,8 @@
 
 
 (def todo-app
-  {:transform {:todo {:init {:todos []} :fn todo-transform}}
+  {:transform {:todo {:init (data/init-state) :fn todo-transform}}
+   :effect {:todo save-todos}
    :combine {:new-todos {:fn new-todos :input #{:todo}}
              :deleted-todos {:fn deleted-todos :input #{:todo}}
              :updated-todos {:fn updated-todos :input #{:todo}}

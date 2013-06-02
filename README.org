@@ -25,7 +25,8 @@ After running these commands open http://localhost:8000/todomvc-pedestal-dev.htm
 - call default keypress event handler after handling the keypress event in add-todo/upd-todo
 - toggle-all twice does no work properly if there were alaready one or more completed todos?
 - strong tag in "item/s"
-- slow
+- improve rendering speed
+- hide "toggle-all" checkbox when there is no todo.
 
 ** License
 
