@@ -11,22 +11,21 @@ You will need [[https://github.com/technomancy/leiningen][Leiningen]] 2.0 or abo
 
 To start the application, run:
 
-- lein cljsbuild once
-- lein ring server
+- lein repl
+- (dev)
+- (run)
 
-After running these commands the application will be open in your default browser.
+After running these commands open http://localhost:8000/todomvc-pedestal-dev.html in a browser.
 
 ** TODOS
 *** must have
 - init/save todo list from/to localStorage
-- check/uncheck completed
-- clear completed
-- check all
-- stats
 
 *** nice to have
-- call default keypress event handler after handling the keypress event
-- issues in emit with log/debug
+- call default keypress event handler after handling the keypress event in add-todo/upd-todo
+- toggle-all twice does no work properly if there were alaready one or more completed todos?
+- strong tag in "item/s"
+- slow
 
 ** License
 
